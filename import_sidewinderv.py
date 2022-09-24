@@ -13,7 +13,7 @@ def build_mdl(mdl, filename):
 
     bpy.ops.object.add(type="ARMATURE")
     ob = bpy.context.object
-    ob.rotation_euler = ( radians(90), 0, 0 )
+    ob.rotation_euler = ( radians(-90), 0, 0 )
     ob.name = str(filename)
 
     amt = ob.data
@@ -21,7 +21,7 @@ def build_mdl(mdl, filename):
 
     index = 0
 
-    for chunk in mdl.chunks:
+    for mdl_mesh in mdl.meshes:
 
         empty = add_empty(str(index), ob)
 
@@ -42,15 +42,33 @@ def build_mdl(mdl, filename):
         bm.from_mesh(mesh)
 
         # Set vertices
-        for j in range(len(chunk.chunkPositions)):
-            vertex = bm.verts.new(chunk.chunkPositions[j])
+        for j in range(len(mdl_mesh.positions)):
+            vertex = bm.verts.new(mdl_mesh.positions[j])
+
+            if mdl_mesh.normals[j] != []:
+                vertex.normal = mdl_mesh.normals[j]
+                normals.append(mdl_mesh.normals[j])
 
             vertex.index = last_vertex_count + j
 
             vertexList[last_vertex_count + j] = vertex
+
+        faces = StripToTriangle(mdl_mesh.faces)
   
+        # Set faces
+        for j in range(0, len(mdl_mesh.faces)):
+            try:
+                face = bm.faces.new([vertexList[faces[j][0] + last_vertex_count], vertexList[faces[j][1] + last_vertex_count], vertexList[faces[j][2] + last_vertex_count]])
+                face.smooth = True
+                facesList.append([face, [vertexList[faces[j][0] + last_vertex_count], vertexList[faces[j][1] + last_vertex_count], vertexList[faces[j][2]] + last_vertex_count]])
+            except:
+                pass
+
+
         bm.to_mesh(mesh)
         bm.free()
+
+
 
         # Set normals
         mesh.use_auto_smooth = True
@@ -61,7 +79,7 @@ def build_mdl(mdl, filename):
             except:
                 pass
 
-        last_vertex_count += len(chunk.chunkPositions[j])
+        last_vertex_count += len(mdl_mesh.positions)
 
         index += 1        
 

@@ -4,7 +4,7 @@ class MDL():
 
     def __init__(self) -> None:
         
-        self.chunks = []
+        self.meshes = []
 
     class HEADER():
 
@@ -19,18 +19,18 @@ class MDL():
             for i in range(count):
                 self.offsets.append(br.readInt())
 
-    class CHUNK():
+    class MESH():
 
         def __init__(self) -> None:
 
             self.dataLength = 0
             
-            self.chunkPositions = []
-            self.chunkTexCoords = []
-            self.chunkNormals = []
-            self.chunkColors = []
+            self.positions = []
+            self.texCoords = []
+            self.normals = []
+            self.colors = []
 
-            self.chunkFaces = []
+            self.faces = []
 
         def read(self, br):
 
@@ -38,6 +38,7 @@ class MDL():
             self.dataLength = (self.dataLength & 0x7FFF) * 16 + 16 + br.tell() - 4 
 
             order = "positions"
+            index = 0
 
             while(br.tell() < self.dataLength):
                 
@@ -68,15 +69,19 @@ class MDL():
                         for i in range(NUM):
                         
                             if order == "positions":
-                                self.chunkPositions.append([br.readFloat(), br.readFloat(), br.readFloat()])
+                                self.positions.append([br.readFloat(), br.readFloat(), br.readFloat()])
                                 order = "normals"
-                            
+                                
                             elif order == "normals":
-                                self.chunkNormals.append([br.readFloat(), br.readFloat(), br.readFloat()])
+                                self.normals.append([br.readFloat(), br.readFloat(), br.readFloat()])
                                 order = "colors"
                             
                             elif order == "colors":
-                                self.chunkColors.append([br.readUInt(), br.readUInt(), br.readUInt()])
+                                self.colors.append([br.readUInt(), br.readUInt(), br.readUInt()])
+                                order = "uvs"
+
+                            elif order == "uvs":
+                                self.texCoords.append([br.readFloat(), br.readFloat(), br.readFloat()])
                                 order = "positions"
 
                     elif CMD == 0x6C:
@@ -92,9 +97,14 @@ class MDL():
 
                         for i in range(NUM):
 
-                            br.readByte()
+                            flag = br.readByte()                          
 
-                        br.seek((NUM + 3) & ~3, 1)
+                            if int(bin(flag)[-1]) == 1:
+                                self.faces.append(0xFFFF)                            
+                            self.faces.append(index)
+                            index += 1
+
+                        br.seek(((NUM + 3) & ~3) - NUM, 1)
 
                 print(br.tell())
 
@@ -113,10 +123,11 @@ class MDL():
 
                 br.seek(offset, 0)
                 
-                chunk = MDL.CHUNK()
-                chunk.read(br)
+                mesh = MDL.MESH()
+                mesh.read(br)
 
-                self.chunks.append(chunk)
+                self.meshes.append(mesh)
+
 
 
 
