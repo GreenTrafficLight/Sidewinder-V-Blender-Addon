@@ -31,8 +31,11 @@ class MDL():
             self.colors = []
 
             self.faces = []
+            self.facesDir = []
 
         def read(self, br):
+
+            test = 0
 
             self.dataLength = br.readUInt()
             self.dataLength = (self.dataLength & 0x7FFF) * 16 + 16 + br.tell() - 4 
@@ -97,14 +100,19 @@ class MDL():
 
                         for i in range(NUM):
 
-                            flag = br.readByte()                          
+                            flag = br.readByte()                 
 
                             if int(bin(flag)[-1]) == 1:
-                                self.faces.append(0xFFFF)                            
+                                self.faces.append(0xFFFF)
+                                if flag != 33:
+                                    self.facesDir.append(index)                            
                             self.faces.append(index)
                             index += 1
 
                         br.seek(((NUM + 3) & ~3) - NUM, 1)
+
+                        
+
 
                 print(br.tell())
 
@@ -127,7 +135,6 @@ class MDL():
                 mesh.read(br)
 
                 self.meshes.append(mesh)
-
 
 
 

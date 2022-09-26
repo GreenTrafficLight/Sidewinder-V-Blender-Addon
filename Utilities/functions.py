@@ -1,13 +1,22 @@
-def StripToTriangle(triangleStripList, reverse_face_winding = False):
+def StripToTriangle(triangleStripList, faceDir=[]):
     faces = []
     cte = 0
+    if 0 in faceDir:
+        faceWinding = True
+    else:
+        faceWinding = False
+    
     for i in range(2, len(triangleStripList)):
-        if triangleStripList[i] == 65535 or triangleStripList[i - 1] == 65535 or triangleStripList[i - 2] == 65535:
+        if triangleStripList[i] == 0xFFFF or triangleStripList[i - 1] == 0xFFFF or triangleStripList[i - 2] == 0xFFFF:
             if i % 2 == 0:
                 cte = -1
             else:
                 cte = 0
-            pass
+            
+            if triangleStripList[i] in faceDir or triangleStripList[i - 1] in faceDir or triangleStripList[i - 2] in faceDir:
+                faceWinding = True
+            else:
+                faceWinding = False
         else:
             if (i + cte) % 2 == 0:
                 a = triangleStripList[i - 2]
@@ -19,9 +28,8 @@ def StripToTriangle(triangleStripList, reverse_face_winding = False):
                 c = triangleStripList[i]
 
             if a != b and b != c and c != a:
-                if reverse_face_winding:
-                    faces.append([c, b, a])
-                else: 
+                if faceWinding == False:
                     faces.append([a, b, c])
-
+                elif faceWinding == True:
+                    faces.append([c, b, a])
     return faces

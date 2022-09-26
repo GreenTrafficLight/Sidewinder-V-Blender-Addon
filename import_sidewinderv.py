@@ -53,7 +53,8 @@ def build_mdl(mdl, filename):
 
             vertexList[last_vertex_count + j] = vertex
 
-        faces = StripToTriangle(mdl_mesh.faces)
+        #faces = StripToTriangle(mdl_mesh.faces, mdl_mesh.facesDir)
+        faces = StripToTriangle(mdl_mesh.faces, mdl_mesh.facesDir)
   
         # Set faces
         for j in range(0, len(mdl_mesh.faces)):
@@ -64,9 +65,20 @@ def build_mdl(mdl, filename):
             except:
                 pass
 
+        if mdl_mesh.texCoords != []:
+
+            uv_name = "UV1Map"
+            uv_layer1 = bm.loops.layers.uv.get(uv_name) or bm.loops.layers.uv.new(uv_name)
+
+            for f in bm.faces:
+                for l in f.loops:
+                    if l.vert.index >= last_vertex_count:
+                        l[uv_layer1].uv = [mdl_mesh.texCoords[l.vert.index - last_vertex_count][0], 1 - mdl_mesh.texCoords[l.vert.index - last_vertex_count][1]]
+        
 
         bm.to_mesh(mesh)
         bm.free()
+
 
 
 
