@@ -77,7 +77,10 @@ class MDL():
                                 
                             elif order == "normals":
                                 self.normals.append([br.readFloat(), br.readFloat(), br.readFloat()])
-                                order = "colors"
+                                if IMMEDIATE == 32770:
+                                    order = "colors"
+                                else:
+                                    order = "uvs"
                             
                             elif order == "colors":
                                 self.colors.append([br.readUInt(), br.readUInt(), br.readUInt()])
@@ -111,10 +114,7 @@ class MDL():
 
                         br.seek(((NUM + 3) & ~3) - NUM, 1)
 
-                        
-
-
-                print(br.tell())
+                #print(br.tell())
 
             br.seek(self.dataLength, 0)
 
